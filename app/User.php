@@ -41,10 +41,51 @@ class User extends Authenticatable
     {
         return $this->hasMany(Micropost::class);
     }
+    // このユーザがフォロー中のユーザ
+    public function followings()
+    {
+        return $this->belongsToMany(User::class, 'user_follow', 'user_id', 'follow_id')->withTimestamps();
+    }
+    
+    // このユーザをフォロー中のユーザ
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'user_follow', 'follow_id', 'user_id')->withTimestamps();
+    }
     
     // Userが持つMicropostの数をカウントする
     public function loadRelationshipCounts()
     {
-        $this->loadCount('microposts');
+        $this->loadCount(['microposts', 'followings', 'followers']);
+    }
+    
+    public function follow($userId){
+        // すでにフォローしているか
+        $exist = $this->is_following($userId);
+        // 対象が自分自身か
+        $its_me = $this->user_id == $userId;
+        
+        if($exist || $its_me){
+            return false;
+        }else{
+            $this->followings()->attach($userId);
+            return true;
+        }
+    }
+    
+    public function unfollow($userId){
+        $exist = $this->is_following($userId);
+        $its_me = $this->user_id == $userId;
+        
+        if($exist && !$its_me){
+            $this->followings()->detach($userId);
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
+    public function is_following($userId){
+        return $this->followings()->where('follow_id', $userId)->exists();
     }
 }

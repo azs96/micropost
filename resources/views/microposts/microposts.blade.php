@@ -13,10 +13,23 @@
                         {{-- 投稿内容 --}}
                         <p class="mb-0">{!! nl2br(e($micropost->content)) !!}</p>
                     </div>
-                    <div>
+                    <div class="d-flex">
+                        {{--お気に入りに追加していないポストであればfavoriteボタンを表示 --}}
+                        @if (!Auth::user()->is_favorite($micropost->id))
+                           {{-- todo ここに削除ボタンとかお気に入り（削除）ボタンを場合分けして表示する　--}}
+                            {!! Form::open(['route' => ['favorites.favorite', $micropost->id]]) !!}
+                                {!! Form::submit('Favorite', ['class' => 'btn btn-light btn-sm m-1']) !!}
+                            {!! Form::close() !!}
+                        @endif
+                         {{-- お気に入りに追加しているポストであればお気に入り削除ボタンを表示 --}}
+                        @if (Auth::user()->is_favorite($micropost->id))
+                            {!! Form::open(['route' => ['favorites.unfavorite', $micropost->id], 'method' => 'delete']) !!}
+                                {!! Form::submit('Unfavorite', ['class' => 'btn btn-success btn-sm m-1']) !!}
+                            {!! Form::close() !!}
+                        @endif
                         @if (Auth::id() == $micropost->user_id)
                             {!! Form::open(['route' => ['microposts.destroy', $micropost->id], 'method' => 'delete']) !!}
-                                {!! Form::submit('Delete', ['class' => 'btn btn-danger btn-sm']) !!}
+                                {!! Form::submit('Delete', ['class' => 'btn btn-danger btn-sm m-1']) !!}
                             {!! Form::close() !!}
                         @endif
                     </div>
